@@ -1,3 +1,6 @@
+from datetime import datetime
+import json
+import os
 import paho.mqtt.client as mqtt
 import time
 
@@ -7,10 +10,28 @@ MQTT_PORT = 1883
 HEARTBEAT_TOPIC = "device/heartbeat"
 TEMP_TOPIC = "device/temperature"
 HUM_TOPIC = "device/humidity"
+LOG_FILE = "sensor_data.json"
 
 # **Heartbeat Timeout Süresi**
 HEARTBEAT_TIMEOUT = 10  # saniye
 last_heartbeat = time.time()
+
+def save_to_file(temperature, humidity):
+    """Sensör verisini dosyaya JSON formatında kaydeder"""
+    data = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "temperature": temperature,
+        "humidity": humidity
+    }
+
+    print(f"📌 Dosyaya yazılıyor: {data}")  # Debug için
+    print(f" Flask Çalışma Dizini: {os.getcwd()}")
+
+    try:
+        with open(LOG_FILE, "a+") as file:  # "a" modu ile ekleme yapar
+            file.write(json.dumps(data) + "\n")
+    except Exception as e:
+        print(f"⚠️ Hata: {e}")  # Eğer hata alırsan burada görünecek.
 
 # **MQTT'den Gelen Mesajları İşleyici**
 def on_message(client, userdata, message):
@@ -27,6 +48,11 @@ def on_message(client, userdata, message):
 
     elif topic == HUM_TOPIC:
         print(f"💧 [Nem] {payload}%")
+    ## TODO burada jsona yazılacak 
+
+
+
+
 
 # **MQTT Bağlantı Fonksiyonu**
 def on_connect(client, userdata, flags, rc):
