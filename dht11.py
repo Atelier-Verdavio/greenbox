@@ -16,7 +16,7 @@ LOG_FILE = "sensor_data.json"
 HEARTBEAT_TIMEOUT = 10  # saniye
 last_heartbeat = time.time()
 
-def save_to_file(temperature, humidity):
+def save_to_file(temperature=None, humidity=None):
     """Sensör verisini dosyaya JSON formatında kaydeder"""
     data = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -25,13 +25,33 @@ def save_to_file(temperature, humidity):
     }
 
     print(f"📌 Dosyaya yazılıyor: {data}")  # Debug için
-    print(f" Flask Çalışma Dizini: {os.getcwd()}")
-
+    file_data = []
     try:
-        with open(LOG_FILE, "a+") as file:  # "a" modu ile ekleme yapar
-            file.write(json.dumps(data) + "\n")
-    except Exception as e:
-        print(f"⚠️ Hata: {e}")  # Eğer hata alırsan burada görünecek.
+        with open(
+            LOG_FILE, "r+"
+        ) as file:  # "a" modu ile ekleme yapar
+            try:
+                file_data: list = json.loads(file.read())
+            except:
+                json.dump([], file)
+    except:
+        print("json dosyası yok")
+
+    file_data.append(data)
+    with open(
+        LOG_FILE, "w+"
+    ) as file:  
+        json.dump(file_data, file)
+    # try:
+    #     with open(LOG_FILE, "a+") as file:  # "a" modu ile ekleme yapar
+    #         file_data= json.load(file)
+    #         print(file_data)
+    #         # if file_data:
+    #         #     json.dump(data, file)
+    #         # else:
+    #         json.dump([data], file)
+    # except Exception as e:
+    #     print(f"⚠️ Hata: {e}")  # Eğer hata alırsan burada görünecek.
 
 # **MQTT'den Gelen Mesajları İşleyici**
 def on_message(client, userdata, message):
@@ -45,11 +65,12 @@ def on_message(client, userdata, message):
 
     elif topic == TEMP_TOPIC:
         print(f"🌡️ [Sıcaklık] {payload}°C")
+        save_to_file(temperature=payload)
 
     elif topic == HUM_TOPIC:
         print(f"💧 [Nem] {payload}%")
+        save_to_file(humidity=payload)
     ## TODO burada jsona yazılacak 
-
 
 
 
