@@ -64,9 +64,10 @@ def get_latest_sensor_data():
     """Dosyada kayıtlı en son sensör verisini JSON formatında döndürür"""
     try:
         with open(LOG_FILE, "r") as file:
+           ## breakpoint()
             records = json.load(file)  # 📌 Tüm kayıtları oku
             if records:
-                last_entry = records[-1]  # 📌 Son JSON kaydını al
+                last_entry = records[-2:]  # 📌 Son JSON kaydını al
                 print(f"📌 Son Kaydedilen Veri: {last_entry}")
                 return jsonify(last_entry), 200
             else:
